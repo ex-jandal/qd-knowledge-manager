@@ -30,7 +30,8 @@
       {
         <FileNode Item="@file" orderMethod="(int)orderMethod" />
       }
-      @if (!isExist) {
+      @if (!isExist)
+      {
         <p>Directory is not Exist.</p>
       }
     </div>
@@ -46,7 +47,8 @@
   static string CurrentPath = "/home/abu_jandal";
   private string CurrentBuffer = "";
 
-  static string? CurrentDirectoryName = CurrentPath != null ? Path.GetFileName(CurrentPath.TrimEnd(Path.DirectorySeparatorChar)) : "null";
+  static string? CurrentDirectoryName = CurrentPath != null ?
+  Path.GetFileName(CurrentPath.TrimEnd(Path.DirectorySeparatorChar)) : "null";
 
   private HashSet<string> expandedDirs = new();
 
@@ -117,6 +119,7 @@
     .ThenBy(f => f.GetName(), StringComparer.OrdinalIgnoreCase)
     .ToList();
 
-  CurrentDirectoryName = CurrentPath != null ? Path.GetFileName(CurrentPath.TrimEnd(Path.DirectorySeparatorChar)) : "null";
+    CurrentDirectoryName = CurrentPath != null ? Path.GetFileName(CurrentPath.TrimEnd(Path.DirectorySeparatorChar)) :
+    "null";
   }
 }
