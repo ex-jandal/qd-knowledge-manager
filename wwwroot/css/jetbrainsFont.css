@@ -1,0 +1,27 @@
+@font-face {
+  src: url("../fonts/JetBrainsMonoNerdFontMono-Regular.ttf");
+  font-family: "Jetbrain NF";
+  font-style: normal;
+  font-weight: normal;
+}
+
+@font-face {
+  src: url("../fonts/JetBrainsMonoNerdFontMono-Bold.ttf");
+  font-family: "Jetbrain NF";
+  font-style: normal;
+  font-weight: bold;
+}
+
+@font-face {
+  src: url("../fonts/JetBrainsMonoNerdFontMono-Italic.ttf");
+  font-family: "Jetbrain NF";
+  font-style: italic;
+  font-weight: normal;
+}
+
+@font-face {
+  src: url("../fonts/JetBrainsMonoNerdFontMono-BoldItalic.ttf");
+  font-family: "Jetbrain NF";
+  font-style: italic;
+  font-weight: bold;
+}
