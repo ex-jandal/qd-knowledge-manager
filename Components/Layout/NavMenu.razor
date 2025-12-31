@@ -1,0 +1,35 @@
+﻿<div class="h-screen text-4xl flex flex-col gap-4 pt-4 justify-center items-center border-r border-r-gray-700"
+  onclick="document.querySelector('.navbar-toggler').click()">
+
+  <NavLink href="" Match="NavLinkMatch.All">
+    <img src="@Assets["favicon.png"]" class="w-10 h-10" />
+  </NavLink>
+
+  <hr />
+
+  <nav class="h-full flex flex-col items-center gap-4 px-4">
+    <NavLink ActiveClass="bg-white text-black rounded-xl transition-all duration-200" class="" href="" Match="NavLinkMatch.All">
+      <div class="hover:bg-gray-600 px-3 py-1 rounded-xl transition-all duration-200">
+        
+      </div>
+    </NavLink>
+
+    <NavLink ActiveClass="bg-white text-black rounded-xl transition-all duration-200" class="" href="counter">
+      <div class="hover:bg-gray-600 px-3 py-1 rounded-xl transition-all duration-200">
+        
+      </div>
+    </NavLink>
+
+    <NavLink ActiveClass="bg-white text-black rounded-xl transition-all duration-200" class="nav-link" href="weather">
+      <div class="hover:bg-gray-600 px-3 py-1 rounded-xl transition-all duration-200">
+        
+      </div>
+    </NavLink>
+
+    <NavLink ActiveClass="bg-white text-black rounded-xl transition-all duration-200" class="nav-link" href="files">
+      <div class="hover:bg-gray-600 px-3 py-1 rounded-xl transition-all duration-200">
+        
+      </div>
+    </NavLink>
+  </nav>
+</div>
