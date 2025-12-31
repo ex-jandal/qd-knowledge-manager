@@ -1,6 +1,6 @@
+@page "/files"
 @rendermode InteractiveServer
 @using QD_Knowlage_Manager.Components.Components;
-@page "/files"
 
 <div class="grow flex flex-row overflow-auto">
   <div class="w-80 max-h-[100vh - 58px] overflow-hidden border-r border-r-gray-700 py-2">
@@ -43,7 +43,7 @@
 </div>
 
 @code {
-  private List<FileSystem> Entity = new();
+  static List<FileSystem> Entity = new();
   static string CurrentPath = "/home/abu_jandal";
   private string CurrentBuffer = "";
 
