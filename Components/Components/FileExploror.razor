@@ -1,0 +1,170 @@
+@using System.Runtime.CompilerServices
+<div>
+  <div class="flex flex-row justify-between items-center p-1 my-3 border-y border-y-gray-700">
+    <p class="w-40 pl-2 overflow-clip text-nowrap">
+      @CurrentDirectoryName
+    </p>
+
+    <div class="flex flex-row gap-0.5">
+      <button class="py-2 px-4 hover:bg-gray-400 hover:text-white rounded-md transition-all duration-200"
+        @onclick="Reorder">
+        @OrderMethodIcon[(int)orderMethod]
+      </button>
+
+      <button class="py-2 px-4 hover:bg-gray-400 hover:text-white rounded-md transition-all duration-200"
+        @onclick="OpenCreatingFileBlock">
+        
+      </button>
+    </div>
+  </div>
+</div>
+
+@if (isCreatingFile)
+{
+  <div class="flex flex-row gap-2 p-2">
+    <input class="block w-full border border-gray-500 px-4 py-2 rounded-md" type="Text" @bind="newFileName" />
+    <button @onclick="CreateFile" class="py-2 px-4 text-center align-middle text-[24px] bg-white text-black rounded-md">
+      <span class="">󰏌</span>
+    </button>
+  </div>
+  @if (showErrorNewFileName)
+  {
+    <p class="text-red-500 text-center">File name Can't be null</p>
+  }
+}
+
+<div class="px-4 pb-100 h-screen overflow-auto">
+  @foreach (var file in Entity)
+  {
+    <FileNode OnClick="SendToParaent" OnDelete="ListDir" Item="@file" orderMethod="(int)orderMethod" />
+  }
+  @if (!isExist)
+  {
+    <p>Directory is not Exist.</p>
+  }
+</div>
+
+@code {
+  [Parameter]
+  public string innerPath { get; set; } = default!;
+
+  [Parameter]
+  public EventCallback<FileSystem> WhenItemClicked { get; set; } = default!;
+
+  private bool isCreatingFile = false;
+  private string? newFileName;
+  private bool showErrorNewFileName = false;
+
+  private string? CurrentDirectoryName;
+
+  private List<FileSystem> Entity = new();
+
+  protected override void OnParametersSet()
+  {
+    CurrentDirectoryName =
+    string.IsNullOrEmpty(innerPath)
+    ? "null"
+                : Path.GetFileName(
+    innerPath.TrimEnd(Path.DirectorySeparatorChar)
+    );
+    ListDir();
+  }
+
+  private HashSet<string> expandedDirs = new();
+
+  private bool isExist = true;
+  <!-- private bool showHidden = false; -->
+
+  private char[] OrderMethodIcon = ['', ''];
+  public enum OrderMethod
+  {
+    ASD,
+    DES,
+  };
+  private OrderMethod orderMethod = OrderMethod.DES;
+
+  <!-- private void ShowHidden() -->
+  <!-- { -->
+  <!--   showHidden = showHidden == true ? false : true; -->
+  <!-- } -->
+
+  <!-- private void ShowSubDir(FileSystem File) -->
+  <!-- { -->
+  <!--   if (!File.IsDirectory()) -->
+  <!--     return; -->
+  <!---->
+  <!--   if (!expandedDirs.Add(File.GetFullPath())) -->
+  <!--     expandedDirs.Remove(File.GetFullPath()); -->
+  <!-- } -->
+
+  private void Reorder()
+  {
+    orderMethod = orderMethod == OrderMethod.ASD ? OrderMethod.DES : OrderMethod.ASD;
+
+    if (orderMethod == OrderMethod.ASD)
+    {
+      Entity = Entity
+      .OrderByDescending(f => f.IsDirectory())
+      .ThenByDescending(f => f.GetName(), StringComparer.OrdinalIgnoreCase)
+      .ToList();
+    }
+    else
+    {
+      Entity = Entity
+      .OrderByDescending(f => f.IsDirectory())
+      .ThenBy(f => f.GetName(), StringComparer.OrdinalIgnoreCase)
+      .ToList();
+    }
+  }
+
+  public void ListDir()
+  {
+    Entity.Clear();
+
+    try
+    {
+      foreach (var item in Directory.GetFileSystemEntries(innerPath))
+      {
+        Entity.Add(new FileSystem(item));
+      }
+      isExist = Directory.Exists(innerPath);
+    }
+    catch
+    {
+      isExist = Directory.Exists(innerPath);
+    }
+
+    Entity = Entity
+    .OrderByDescending(f => f.IsDirectory())
+    .ThenBy(f => f.GetName(), StringComparer.OrdinalIgnoreCase)
+    .ToList();
+  }
+
+  private void OpenCreatingFileBlock()
+  {
+    isCreatingFile = isCreatingFile == true ? false : true;
+  }
+  private void CreateFile()
+  {
+    if (!string.IsNullOrEmpty(newFileName))
+    {
+      var newFile = File.Create(string.Format("{0}/{1}", Path.GetDirectoryName(innerPath), newFileName));
+      newFile.Close();
+
+      isCreatingFile = false;
+      showErrorNewFileName = false;
+      newFileName = null;
+
+      ListDir();
+    }
+    else
+    {
+      showErrorNewFileName = true;
+    }
+  }
+
+  async Task SendToParaent(FileSystem Item)
+  {
+    await WhenItemClicked.InvokeAsync(Item);
+  }
+}

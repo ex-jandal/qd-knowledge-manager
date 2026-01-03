@@ -1,0 +1,137 @@
+@using PSC.Blazor.Components.MarkdownEditor.Enums;
+@rendermode InteractiveServer
+
+@if (isPreviewMode)
+{
+  <div class="h-full relative flex flex-col gap-2 mx-auto max-w-200">
+    <div class="h-12 px-2.5 py-2.5 bg-gray-950 rounded-t-md">
+      <button @onclick="TogglePreview"
+        class="w-7.5 h-7.5 text-center align-middle text-[24px] bg-white text-black rounded-md">
+        <span class="relative -top-0.5"></span>
+      </button>
+
+      @if (isShowHTMLCode)
+      {
+        <button @onclick="ShowHTMLCode"
+          class="w-7.5 h-7.5 ml-2 text-center align-middle text-[24px] bg-white text-black rounded-md">
+          <span class="relative -top-0.5"></span>
+        </button>
+      }
+      else
+      {
+        <button @onclick="ShowHTMLCode"
+          class="w-7.5 h-7.5 ml-2 text-center align-middle text-[24px] bg-transparent text-white rounded-md">
+          <span class="relative -top-0.5"></span>
+        </button>
+      }
+    </div>
+
+    <div
+      class="p-4 relative overflow-y-auto flex flex-col gap-2 after:content-[''] after:top-0 after:left-0 after:absolute after:h-full after:z-[-1] after:w-full after:bg-gray-950 after:rounded-b-md">
+      <div class="overflow-y-auto pb-100">
+        <span
+          class="prose prose-invert wrap-break-word prose-pre:bg-transparent prose-pre:p-0 prose-pre:rounded-md prose-img:block prose-img:mx-auto prose-img:max-h-100 prose-img:rounded-md">
+          @((MarkupString)markdownHtml)
+
+          <script>hljs.highlightAll();</script>
+        </span>
+      </div>
+
+      @if (isShowHTMLCode)
+      {
+        <br />
+        <hr class="border border-gray-300 rounded-4xl" />
+
+        <div class="overflow-y-auto">
+          <span class="prose prose-invert overflow-auto *:text-wrap">
+            <pre><code class="html">@markdownHtml</code></pre>
+          </span>
+        </div>
+      }
+
+    </div>
+  </div>
+}
+else
+{
+  <div class="mx-auto max-w-200 wrap-break-word min-w-50 text-white">
+    <MarkdownEditor MinHeight="200px" MaxHeight="calc(100vh - 205px)" LineWrapping NativeSpellChecker
+      @bind-Value="@markdownValue" ValueHTMLChanged="@OnMarkdownValueHTMLChanged" CustomButtonClicked="@TogglePreview">
+      <Toolbar>
+        <MarkdownToolbarButton Name="Custom Preview" Value="@("Preview Mode")" Icon="fa fa-eye" Title="A Custom Button" />
+        <MarkdownToolbarButton Separator Action="MarkdownAction.Heading" Icon="fa fa-header" Title="Heading" />
+        <MarkdownToolbarButton Action="MarkdownAction.Bold" Icon="fa fa-bold" Title="Bold" />
+        <MarkdownToolbarButton Action="MarkdownAction.Italic" Icon="fa fa-italic" Title="Italic" />
+
+        <MarkdownToolbarButton Separator Action="MarkdownAction.Table" Icon="fa fa-table" Title="Table" />
+        <MarkdownToolbarButton Action="MarkdownAction.UnorderedList" Icon="fa fa-list-ul" Title="Unordered List" />
+        <MarkdownToolbarButton Action="MarkdownAction.OrderedList" Icon="fa fa-list-ol" Title="Ordered List" />
+
+        <MarkdownToolbarButton Separator Action="MarkdownAction.Quote" Icon="fa fa-quote-right" Title="Quote" />
+        <MarkdownToolbarButton Action="MarkdownAction.Code" Icon="fa fa-code" Title="Code" />
+      </Toolbar>
+    </MarkdownEditor>
+  </div>
+}
+
+@code {
+  [Parameter]
+  public FileSystem CurrentFile { get; set; } = default!;
+
+  private static bool isPreviewMode = false;
+  private bool isShowHTMLCode = false;
+
+  string? markdownValue = "";
+  string? markdownHtml;
+
+  void GetBuffer()
+  {
+    using var fs = new FileStream(
+      CurrentFile.GetFullPath(),
+      FileMode.Open,
+      FileAccess.ReadWrite,
+      FileShare.ReadWrite
+    );
+
+    using var reader = new StreamReader(fs);
+    markdownValue = reader.ReadToEnd();
+  }
+
+  void SaveBuffer()
+  {
+    File.WriteAllText(CurrentFile.GetFullPath(), markdownValue);
+  }
+
+  protected async override void OnParametersSet()
+  {
+    GetBuffer();
+
+    if (isPreviewMode) {
+      await TogglePreview();
+      await Task.Yield();
+      await TogglePreview();
+    }
+  }
+
+  Task OnMarkdownValueChanged(string value)
+  {
+    return Task.CompletedTask;
+  }
+
+  Task OnMarkdownValueHTMLChanged(string value)
+  {
+    SaveBuffer();
+    markdownHtml = value;
+    return Task.CompletedTask;
+  }
+
+  Task TogglePreview()
+  {
+    isPreviewMode = !isPreviewMode;
+    return Task.CompletedTask;
+  }
+  void ShowHTMLCode()
+  {
+    isShowHTMLCode = !isShowHTMLCode;
+  }
+}
