@@ -13,13 +13,18 @@
 
       <button class="py-2 px-4 hover:bg-gray-400 hover:text-white rounded-md transition-all duration-200"
         @onclick="OpenCreatingFileBlock">
-        
+        
+      </button>
+
+      <button class="py-2 px-4 hover:bg-gray-400 hover:text-white rounded-md transition-all duration-200"
+        @onclick="OpenCreatingDirBlock">
+        
       </button>
     </div>
   </div>
 </div>
 
-@if (isCreatingFile)
+@if (isCreatingFile || isCreatingDir)
 {
   <div class="flex flex-row gap-2 p-2">
     <input class="block w-full border border-gray-500 px-4 py-2 rounded-md" type="Text" @bind="newFileName" />
@@ -52,6 +57,7 @@
   public EventCallback<FileSystem> WhenItemClicked { get; set; } = default!;
 
   private bool isCreatingFile = false;
+  private bool isCreatingDir = false;
   private string? newFileName;
   private bool showErrorNewFileName = false;
 
@@ -142,16 +148,27 @@
 
   private void OpenCreatingFileBlock()
   {
-    isCreatingFile = isCreatingFile == true ? false : true;
+    isCreatingDir = false;
+    isCreatingFile = !isCreatingFile;
+  }
+  private void OpenCreatingDirBlock()
+  {
+    isCreatingFile = false;
+    isCreatingDir = !isCreatingDir;
   }
   private void CreateFile()
   {
     if (!string.IsNullOrEmpty(newFileName))
     {
-      var newFile = File.Create(string.Format("{0}/{1}", Path.GetDirectoryName(innerPath), newFileName));
-      newFile.Close();
+      if (isCreatingFile) {
+        var newFile = File.Create(string.Format("{0}/{1}", Path.GetDirectoryName(innerPath), newFileName));
+        newFile.Close();
+        isCreatingFile = false;
+      } else {
+        var newDir = Directory.CreateDirectory(string.Format("{0}/{1}", Path.GetDirectoryName(innerPath), newFileName));
+        isCreatingDir = false;
+      }
 
-      isCreatingFile = false;
       showErrorNewFileName = false;
       newFileName = null;
 

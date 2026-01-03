@@ -2,7 +2,8 @@
 
 <div>
   <div class="flex flex-row justify-between w-full transition-all duration-200">
-    <button class="grow px-4 py-1 text-nowrap overflow-scroll block text-start hover:bg-gray-500 hover:text-white rounded-lg"
+    <button
+      class="grow px-4 py-1 text-nowrap overflow-scroll block text-start hover:bg-gray-500 hover:text-white rounded-lg"
       @onclick="Toggle">
       <span class="text-2xl">@Item.GetIcon()</span>
       <span>@Item.GetName()</span>
@@ -41,7 +42,8 @@
 
   void Toggle()
   {
-    if (!Item.IsDirectory()) {
+    if (!Item.IsDirectory())
+    {
       onClick().GetAwaiter().OnCompleted(() => { return; });
       return;
     }
@@ -56,7 +58,14 @@
 
   async Task DeleteFile()
   {
-    File.Delete(Item.GetFullPath());
+    if (Item.IsDirectory())
+    {
+      Directory.Delete(Item.GetFullPath());
+    }
+    else
+    {
+      File.Delete(Item.GetFullPath());
+    }
     await OnDelete.InvokeAsync();
   }
 

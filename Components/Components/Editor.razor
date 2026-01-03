@@ -33,7 +33,7 @@
           class="prose prose-invert wrap-break-word prose-pre:bg-transparent prose-pre:p-0 prose-pre:rounded-md prose-img:block prose-img:mx-auto prose-img:max-h-100 prose-img:rounded-md">
           @((MarkupString)markdownHtml)
 
-          <script>hljs.highlightAll();</script>
+          @highlightInsert
         </span>
       </div>
 
@@ -77,6 +77,13 @@ else
 @code {
   [Parameter]
   public FileSystem CurrentFile { get; set; } = default!;
+
+  private static RenderFragment highlightInsert = 
+  @<script>
+    new Promise((resolve) => setTimeout(resolve, 1)).then(() => {
+      hljs.highlightAll();
+    })
+  </script>;
 
   private static bool isPreviewMode = false;
   private bool isShowHTMLCode = false;
