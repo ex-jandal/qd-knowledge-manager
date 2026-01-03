@@ -1,0 +1,46 @@
+@page "/editor"
+@rendermode InteractiveServer
+@using QD_Knowlage_Manager.Components.Components;
+
+<div class="grow flex flex-row overflow-auto">
+  <div class="bg-black text-white w-96 max-h-[100vh - 58px] overflow-hidden border-r border-r-gray-700 py-2">
+    <div class="px-4">
+      <input class="block w-full border border-gray-500 p-4 rounded-md" @bind="CurrentPath" type="text"
+        placeholder="path/to/file" />
+    </div>
+    <div class="bg-black text-white">
+      <FileExploror WhenItemClicked="getFile" innerPath="@CurrentPath" />
+    </div>
+  </div>
+
+  <div
+    class="py-4 h-[100vh - 130px] w-full relative after:content-[''] after:top-0 after:left-0 after:absolute after:h-full after:-z-10 after:w-full after:bg-black">
+    @if (isFileOpened)
+    {
+      <Editor CurrentFile="OpenedFile" />
+    }
+    else
+    {
+      <div class="text-white flex flex-col h-full justify-center items-center">
+        <div class="text-9xl"></div>
+        <p>Try to Open a File..</p>
+      </div>
+    }
+  </div>
+</div>
+
+@code {
+  static string CurrentPath = "/home/abu_jandal/Documents/QD_test/";
+  static FileSystem? OpenedFile;
+  static bool isFileOpened = false;
+
+  private async Task getFile(FileSystem theFile)
+  {
+    OpenedFile = theFile;
+    isFileOpened = false;
+
+    await Task.Yield();
+
+    isFileOpened = true;
+  }
+}
