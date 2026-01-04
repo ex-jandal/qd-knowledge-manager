@@ -1,5 +1,4 @@
 using QD_Knowlage_Manager.Components;
-using KristofferStrube.Blazor.FileSystemAccess;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
   .AddInteractiveServerComponents();
 
-builder.Services.AddFileSystemAccessService();
+builder.Services.AddSingleton<LinuxDirectoryPicker>();
+builder.Services.AddSingleton<AppState>();
 
 var app = builder.Build();
 

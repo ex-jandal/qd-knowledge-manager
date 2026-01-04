@@ -9,7 +9,7 @@
       <span>@Item.GetName()</span>
     </button>
 
-    <button class="block px-4 text-xl hover:bg-gray-500 hover:text-white rounded-md" @onclick="DeleteFile">
+    <button class="block px-4 text-xl hover:bg-gray-500 hover:text-white rounded-md" @onclick="() => DeleteFile(Item)">
       󰆴
     </button>
   </div>
@@ -19,7 +19,11 @@
     <div class="ml-6 border-l border-gray-600 pl-2">
       @foreach (var child in Item.GetChildren(orderMethod))
       {
-        <FileNode Item="@child" />
+        <FileNode Item="@child" 
+            @key="child.GetFullPath()"
+            OnDelete="() => DeleteFile(child)" 
+            OnClick="() => OnClick.InvokeAsync(child)" 
+        />
       }
     </div>
   }
@@ -40,11 +44,11 @@
 
   private bool isExpanded = false;
 
-  void Toggle()
+  async void Toggle()
   {
     if (!Item.IsDirectory())
     {
-      onClick().GetAwaiter().OnCompleted(() => { return; });
+      await OnClick.InvokeAsync(Item);
       return;
     }
 
@@ -56,21 +60,20 @@
       Item.SetIcon("");
   }
 
-  async Task DeleteFile()
+  async Task DeleteFile(FileSystem Item)
   {
     if (Item.IsDirectory())
     {
+      foreach (var eachFile in Directory.GetFileSystemEntries(Item.GetFullPath()))
+        File.Delete(eachFile);
       Directory.Delete(Item.GetFullPath());
     }
     else
     {
       File.Delete(Item.GetFullPath());
     }
-    await OnDelete.InvokeAsync();
-  }
 
-  async Task onClick()
-  {
-    await OnClick.InvokeAsync(Item);
+    await OnDelete.InvokeAsync();
+    StateHasChanged();
   }
 }

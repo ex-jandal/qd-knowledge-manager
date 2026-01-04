@@ -1,18 +1,67 @@
-﻿@page "/"
+﻿@page "/";
 
-<PageTitle>Home</PageTitle>
+@inject LinuxDirectoryPicker Picker;
+@inject AppState State;
+@inject NavigationManager nv;
+@implements IDisposable
 
-<div class="grow bg-black text-white w-full mx-auto flex flex-col gap-4 justify-center items-center">
-  <div class="w-40">
-    <img src="@Assets["favicon.png"]" />
+@rendermode InteractiveServer
+
+<PageTitle>QD Knowlage Manager</PageTitle>
+
+<div class="grow absolute top-0 left-0 h-screen w-screen bg-black text-white flex gap-4 justify-center items-center">
+
+  <div class="px-56 py-40 flex flex-col gap-4 justify-center items-center bg-gray-950 rounded-md">
+    <div class="w-40">
+      <img src="@Assets["favicon.png"]" />
+    </div>
+    <div class="text-2xl">
+      <h1>
+        <strong class="text-blue-300">QD</strong> <span class="italic">Knowlage Manager</span>
+      </h1>
+    </div>
+
+    <div class="flex flex-row gap-2">
+      <input class="block w-80 border text-gray-500 border-gray-500 px-4 py-2 rounded-md" @bind="State.CurrentDirectory"
+        type="text" placeholder="path/to/file" disabled />
+
+      <button
+        class="px-4 py-2 bg-white text-black hover:bg-gray-400 hover:text-white rounded-md transition-all duration-200"
+        @onclick="Pick">
+        Open Volume
+      </button>
+    </div>
   </div>
-  <div>
-    <h1>
-      <strong>QD</strong> Knowlage Manager
-    </h1>
-  </div>
-
-  <button class="px-4 py-3 bg-white text-black hover:bg-gray-400 hover:text-white rounded-2xl transition-all duration-200">
-    Open Volume
-  </button>
 </div>
+
+@code {
+  protected override void OnInitialized()
+  {
+    setDefaultPath();
+  }
+
+  async void setDefaultPath()
+  {
+    State.SetDirectory(await Picker.DefaultPathAsync());
+    await Task.Yield();
+    State.OnChange += StateHasChanged;
+  }
+
+  async Task Pick()
+  {
+    var oldPath = State.CurrentDirectory;
+
+    State.SetDirectory(await Picker.PickAsync());
+
+    if (State.CurrentDirectory != null)
+      nv.NavigateTo("/editor");
+
+    else if (State.CurrentDirectory == null)
+      State.SetDirectory(oldPath);
+  }
+
+  public void Dispose()
+  {
+    State.OnChange -= StateHasChanged;
+  }
+}

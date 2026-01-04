@@ -1,4 +1,8 @@
 @using PSC.Blazor.Components.MarkdownEditor.Enums;
+
+@inject AppState State;
+@implements IDisposable
+
 @rendermode InteractiveServer
 
 @if (isPreviewMode)
@@ -93,15 +97,19 @@ else
 
   void GetBuffer()
   {
-    using var fs = new FileStream(
-      CurrentFile.GetFullPath(),
-      FileMode.Open,
-      FileAccess.ReadWrite,
-      FileShare.ReadWrite
-    );
+    try
+    {
+      using var fs = new FileStream(
+        CurrentFile.GetFullPath(),
+        FileMode.Open,
+        FileAccess.ReadWrite,
+        FileShare.ReadWrite
+      );
 
-    using var reader = new StreamReader(fs);
-    markdownValue = reader.ReadToEnd();
+      using var reader = new StreamReader(fs);
+      markdownValue = reader.ReadToEnd();
+    }
+    catch (System.IO.FileNotFoundException) { }
   }
 
   void SaveBuffer()
@@ -109,8 +117,15 @@ else
     File.WriteAllText(CurrentFile.GetFullPath(), markdownValue);
   }
 
+  protected override void OnInitialized() 
+  {
+    State.OnChange += StateHasChanged;
+  }
+
   protected async override void OnParametersSet()
   {
+    State.OnChange -= StateHasChanged;
+
     GetBuffer();
 
     if (isPreviewMode) {
@@ -118,6 +133,8 @@ else
       await Task.Yield();
       await TogglePreview();
     }
+
+    State.OnChange += StateHasChanged;
   }
 
   Task OnMarkdownValueChanged(string value)
@@ -140,5 +157,10 @@ else
   void ShowHTMLCode()
   {
     isShowHTMLCode = !isShowHTMLCode;
+  }
+
+  public void Dispose()
+  {
+    State.OnChange -= StateHasChanged;
   }
 }

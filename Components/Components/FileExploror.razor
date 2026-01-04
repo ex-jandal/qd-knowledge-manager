@@ -1,4 +1,8 @@
-@using System.Runtime.CompilerServices
+@rendermode InteractiveServer
+
+@inject AppState State;
+@inject LinuxDirectoryPicker Picker;
+
 <div>
   <div class="flex flex-row justify-between items-center p-1 my-3 border-y border-y-gray-700">
     <p class="w-40 pl-2 overflow-clip text-nowrap">
@@ -27,7 +31,7 @@
 @if (isCreatingFile || isCreatingDir)
 {
   <div class="flex flex-row gap-2 p-2">
-    <input class="block w-full border border-gray-500 px-4 py-2 rounded-md" type="Text" @bind="newFileName" />
+    <input class="block w-full border border-gray-500 px-4 py-2 rounded-md" type="Text" autofocus @bind="newFileName" />
     <button @onclick="CreateFile" class="py-2 px-4 text-center align-middle text-[24px] bg-white text-black rounded-md">
       <span class="">󰏌</span>
     </button>
@@ -38,7 +42,7 @@
   }
 }
 
-<div class="px-4 pb-100 h-screen overflow-auto">
+<div role="status" class="px-4 pb-100 h-screen overflow-auto">
   @foreach (var file in Entity)
   {
     <FileNode OnClick="SendToParaent" OnDelete="ListDir" Item="@file" orderMethod="(int)orderMethod" />
@@ -51,9 +55,6 @@
 
 @code {
   [Parameter]
-  public string innerPath { get; set; } = default!;
-
-  [Parameter]
   public EventCallback<FileSystem> WhenItemClicked { get; set; } = default!;
 
   private bool isCreatingFile = false;
@@ -63,15 +64,15 @@
 
   private string? CurrentDirectoryName;
 
-  private List<FileSystem> Entity = new();
+  private List<FileSystem> Entity { set; get; } = new();
 
-  protected override void OnParametersSet()
+  protected override void OnInitialized()
   {
     CurrentDirectoryName =
-    string.IsNullOrEmpty(innerPath)
-    ? "null"
-                : Path.GetFileName(
-    innerPath.TrimEnd(Path.DirectorySeparatorChar)
+    string.IsNullOrEmpty(
+      State.CurrentDirectory) 
+        ? "null" 
+        : Path.GetFileName(State.CurrentDirectory.TrimEnd(Path.DirectorySeparatorChar)
     );
     ListDir();
   }
@@ -129,15 +130,15 @@
 
     try
     {
-      foreach (var item in Directory.GetFileSystemEntries(innerPath))
+      foreach (var item in Directory.GetFileSystemEntries(State.CurrentDirectory))
       {
         Entity.Add(new FileSystem(item));
       }
-      isExist = Directory.Exists(innerPath);
+      isExist = Directory.Exists(State.CurrentDirectory);
     }
     catch
     {
-      isExist = Directory.Exists(innerPath);
+      isExist = Directory.Exists(State.CurrentDirectory);
     }
 
     Entity = Entity
@@ -161,11 +162,11 @@
     if (!string.IsNullOrEmpty(newFileName))
     {
       if (isCreatingFile) {
-        var newFile = File.Create(string.Format("{0}/{1}", Path.GetDirectoryName(innerPath), newFileName));
+        var newFile = File.Create(string.Format("{0}/{1}", State.CurrentDirectory, newFileName));
         newFile.Close();
         isCreatingFile = false;
       } else {
-        var newDir = Directory.CreateDirectory(string.Format("{0}/{1}", Path.GetDirectoryName(innerPath), newFileName));
+        var newDir = Directory.CreateDirectory(string.Format("{0}/{1}", State.CurrentDirectory, newFileName));
         isCreatingDir = false;
       }
 
@@ -184,4 +185,9 @@
   {
     await WhenItemClicked.InvokeAsync(Item);
   }
+
+  <!-- public void Dispose() -->
+  <!-- { -->
+  <!--   State.OnChange -= StateHasChanged; -->
+  <!-- } -->
 }
