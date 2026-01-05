@@ -1,0 +1,164 @@
+@rendermode InteractiveServer
+
+@using PSC.Blazor.Components.MarkdownEditor.Enums;
+@page "/AI";
+@inject GeminiService Gemini;
+@inject YoutubeTranscriptService TranscriptService
+
+<PageTitle>AI Note Taker - QD Knowlage Manager</PageTitle>
+
+<div class="grow text-white h-[100vh - 58px] overflow-y-auto flex flex-row gap-8 p-4 justify-between items-center relative after:content-[''] after:top-0 after:left-0 after:absolute after:h-full after:z-[-2] after:w-full after:bg-black">
+
+  <div class="relative h-full max-w-150 p-4 grow overflow-auto flex flex-col gap-4 items-center after:content-[''] after:top-0 after:left-0 after:absolute after:h-full after:z-[-1] after:w-full after:bg-gray-950 after:rounded-md">
+    <input class="block w-full border text-gray-500 border-gray-500 px-4 py-2 rounded-md" type="text" @bind="Url" placeholder="Url..."/>
+
+    <button class="px-4 py-2 w-full block bg-white text-black hover:bg-gray-400 hover:text-white rounded-md transition-all duration-200" @onclick="Load" disabled="@string.IsNullOrEmpty(Url)">
+      @if (isTranscriptLoading)
+      {
+        <span>Working...</span>
+      }
+      else
+      {
+        <span>Catch</span>
+      }
+    </button>
+
+      @if (!string.IsNullOrEmpty(Transcript))
+      {
+        <hr class="w-full border border-gray-400 rounded-4xl"/>
+        <pre class="text-wrap overflow-auto wrap-anywhere ">
+          @Transcript
+        </pre>
+      }
+  </div>
+
+
+  <div class="h-full w-200 grow overflow-auto flex flex-col gap-4">
+    <button class="px-4 py-2 w-full block bg-white text-black hover:bg-gray-400 hover:text-white rounded-md transition-all duration-200" @onclick="AskGemini" disabled="@isAILoading">
+      @if (isAILoading)
+      {
+        <span>Thinking...</span>
+      }
+      else
+      {
+        <span>Generate</span>
+      }
+    </button>
+
+    <div class="h-[100vh - 58px] w-full relative flex flex-col gap-2 mx-auto">
+      @if (!isAILoading)
+      {
+        @if (isPreviewMode)
+        {
+          <div class="h-12 px-2.5 py-2.5 bg-gray-950 rounded-t-md">
+            <button @onclick="TogglePreview"
+              class="w-7.5 h-7.5 text-center align-middle text-[24px] bg-white text-black rounded-md">
+              <span class="relative -top-0.5"></span>
+            </button>
+          </div>
+
+          <div
+            class="p-4 relative overflow-auto flex flex-col gap-2 after:content-[''] after:top-0 after:left-0 after:absolute after:h-full after:z-[-1] after:w-full after:bg-gray-950 after:rounded-b-md">
+            <div class="overflow-auto pb-100">
+              <span
+                class="prose prose-invert wrap-break-word prose-pre:bg-transparent prose-pre:p-0 prose-pre:rounded-md prose-img:block prose-img:mx-auto prose-img:max-h-100 prose-img:rounded-md">
+                @((MarkupString)markdownHtml)
+
+                @highlightInsert
+              </span>
+            </div>
+          </div>
+        }
+        else
+        {
+          <MarkdownEditor MinHeight="200px" MaxHeight="calc(100vh - 260px)" LineWrapping NativeSpellChecker
+            @bind-Value="@GenNotes" ValueHTMLChanged="@OnMarkdownValueHTMLChanged" CustomButtonClicked="@TogglePreview">
+            <Toolbar>
+              <MarkdownToolbarButton Name="Custom Preview" Value="@("Preview Mode")" Icon="fa fa-eye" Title="A Custom Button" />
+              <MarkdownToolbarButton Separator Action="MarkdownAction.Heading" Icon="fa fa-header" Title="Heading" />
+              <MarkdownToolbarButton Action="MarkdownAction.Bold" Icon="fa fa-bold" Title="Bold" />
+              <MarkdownToolbarButton Action="MarkdownAction.Italic" Icon="fa fa-italic" Title="Italic" />
+
+              <MarkdownToolbarButton Separator Action="MarkdownAction.Table" Icon="fa fa-table" Title="Table" />
+              <MarkdownToolbarButton Action="MarkdownAction.UnorderedList" Icon="fa fa-list-ul" Title="Unordered List" />
+              <MarkdownToolbarButton Action="MarkdownAction.OrderedList" Icon="fa fa-list-ol" Title="Ordered List" />
+
+              <MarkdownToolbarButton Separator Action="MarkdownAction.Quote" Icon="fa fa-quote-right" Title="Quote" />
+              <MarkdownToolbarButton Action="MarkdownAction.Code" Icon="fa fa-code" Title="Code" />
+            </Toolbar>
+          </MarkdownEditor>
+        }
+      }
+    </div>
+  </div>
+</div>
+
+@code {
+  static private string Url;
+
+  private static RenderFragment highlightInsert = 
+  @<script>
+    new Promise((resolve) => setTimeout(resolve, 1)).then(() => {
+      hljs.highlightAll();
+    })
+  </script>;
+
+
+  static private string? Transcript;
+  private bool isTranscriptLoading = false;
+
+  static private string? GenNotes;
+  static string? markdownHtml;
+  private bool isPreviewMode = false;
+
+  static private bool isAILoading = false;
+
+  async Task Load()
+  {
+    isTranscriptLoading = true;
+
+    Transcript = null;
+    Transcript = await TranscriptService.GetTranscriptAsync(Url, "en");
+
+    isTranscriptLoading = false;
+  }
+
+  private async Task AskGemini()
+  {
+
+    if (string.IsNullOrWhiteSpace(Transcript)) return;
+
+    isAILoading = true;
+    GenNotes = "";
+
+    try
+    {
+      GenNotes = await Gemini.GetResponseAsync(Transcript);
+    }
+    catch (Exception ex)
+    {
+      GenNotes = "Error: " + ex.Message;
+    }
+    finally
+    {
+      isAILoading = false;
+    }
+  }
+
+  Task OnMarkdownValueChanged(string value)
+  {
+    return Task.CompletedTask;
+  }
+
+  Task OnMarkdownValueHTMLChanged(string value)
+  {
+    markdownHtml = value;
+    return Task.CompletedTask;
+  }
+
+  Task TogglePreview()
+  {
+    isPreviewMode = !isPreviewMode;
+    return Task.CompletedTask;
+  }
+}

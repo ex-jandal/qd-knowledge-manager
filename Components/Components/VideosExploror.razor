@@ -1,0 +1,31 @@
+@rendermode InteractiveServer
+
+@inject AppState State;
+@implements IDisposable;
+@using System.Text.Json;
+
+
+
+@code {
+  private string Link = "";
+
+  protected override void OnInitialized()
+  {
+    State.OnChange += StateHasChanged;
+
+    try
+    {
+      if (!Directory.Exists(State.CurrentDirectory + "/AI-Notes"))
+        Directory.CreateDirectory(State.CurrentDirectory + "/AI-Notes");
+    }
+    catch { }
+  }
+
+  void newVideo() {
+  }
+
+  public void Dispose()
+  {
+    State.OnChange -= StateHasChanged;
+  }
+}

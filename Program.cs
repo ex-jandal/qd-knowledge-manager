@@ -9,6 +9,9 @@ builder.Services.AddRazorComponents()
 builder.Services.AddSingleton<LinuxDirectoryPicker>();
 builder.Services.AddSingleton<AppState>();
 
+builder.Services.AddSingleton<YoutubeTranscriptService>();
+builder.Services.AddScoped<GeminiService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
