@@ -64,8 +64,11 @@
   {
     if (Item.IsDirectory())
     {
-      foreach (var eachFile in Directory.GetFileSystemEntries(Item.GetFullPath()))
+      var innerFiles = Directory.GetFileSystemEntries(Item.GetFullPath());
+
+      foreach (var eachFile in innerFiles)
         File.Delete(eachFile);
+
       Directory.Delete(Item.GetFullPath());
     }
     else
