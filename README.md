@@ -12,8 +12,8 @@ QD Knowledge Manager is a powerful tool designed for developers, writers, and st
 
 ## Technologies Used
 
-*   **Backend**: .NET / C#
-*   **Frontend**: Blazor WebAssembly
+*   **Backend**: .NET 10 / C#
+*   **Frontend**: Blazor Server with ASP.NET
 *   **Styling**: Tailwind CSS
 *   **Syntax Highlighting**: highlight.js
 
