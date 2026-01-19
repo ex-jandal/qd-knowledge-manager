@@ -1,4 +1,4 @@
-using QD_Knowlage_Manager.Components;
+using QD_Knowledge_Manager.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
